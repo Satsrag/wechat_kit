@@ -12,6 +12,8 @@ import 'package:wechat_kit/src/model/req.dart';
 import 'package:wechat_kit/src/model/resp.dart';
 import 'package:wechat_kit/src/wechat_kit_platform_interface.dart';
 
+import 'model/req.dart';
+
 /// An implementation of [WechatKitPlatform] that uses method channels.
 class MethodChannelWechatKit extends WechatKitPlatform {
   /// The method channel used to interact with the native platform.
@@ -42,6 +44,7 @@ class MethodChannelWechatKit extends WechatKitPlatform {
     switch (call.method) {
       // onReq
       case 'onLaunchFromWXReq':
+        print('wechat_debug_log -> MethodChannelWechatKit onLaunchFromWXReq');
         _reqStreamController.add(WechatLaunchFromWXReq.fromJson(data));
       case 'onShowMessageFromWXReq':
         _reqStreamController.add(WechatShowMessageFromWXReq.fromJson(data));

@@ -19,6 +19,7 @@ typedef void (^WechatKitWXReqRunnable)(void);
     BOOL _isRunning;
     BOOL _handleInitialWXReqFlag;
     WechatKitWXReqRunnable _initialWXReqRunnable;
+    NSURL *_url;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -56,14 +57,24 @@ typedef void (^WechatKitWXReqRunnable)(void);
         _isRunning = YES;
         result(nil);
     } else if ([@"handleInitialWXReq" isEqualToString:call.method]) {
+        NSLog(@"wechat_debug_log -> handleInitialWXReq");
         if (!_handleInitialWXReqFlag) {
+            NSLog(@"wechat_debug_log -> handleInitialWXReq: !_handleInitialWXReqFlag");
             _handleInitialWXReqFlag = YES;
+            NSLog(@"wechat_debug_log -> handleInitialWXReq: !_handleInitialWXReqFlag Runnable");
             if (_initialWXReqRunnable != nil) {
                 _initialWXReqRunnable();
+                NSLog(@"wechat_debug_log -> handleInitialWXReq: !_handleInitialWXReqFlag Runnable Runnable");
                 _initialWXReqRunnable = nil;
+            } else if (_url != nil) {
+                NSLog(@"wechat_debug_log -> handleInitialWXReq: !_handleInitialWXReqFlag Runnable Runnable Runnable Runnable");
+                [WXApi handleOpenURL:_url delegate:self];
+            } else {
+                NSLog(@"wechat_debug_log -> handleInitialWXReq: !_handleInitialWXReqFlag _url is nil: %@", _url);
             }
             result(nil);
         } else {
+            NSLog(@"wechat_debug_log -> handleInitialWXReq: !_handleInitialWXReqFlag Runnable Runnable Runnable");
             result([FlutterError errorWithCode:@"FAILED" message:nil details:nil]);
         }
     } else if ([@"isInstalled" isEqualToString:call.method]) {
@@ -374,6 +385,8 @@ typedef void (^WechatKitWXReqRunnable)(void);
 #pragma mark - AppDelegate
 
 - (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url {
+    NSLog(@"wechat_debug_log -> handleOpenURL");
+    _url = url;
     return [WXApi handleOpenURL:url delegate:self];
 }
 
@@ -381,6 +394,8 @@ typedef void (^WechatKitWXReqRunnable)(void);
               openURL:(NSURL *)url
     sourceApplication:(NSString *)sourceApplication
            annotation:(id)annotation {
+    NSLog(@"wechat_debug_log -> openURL");
+    _url = url;
     return [WXApi handleOpenURL:url delegate:self];
 }
 
@@ -388,6 +403,8 @@ typedef void (^WechatKitWXReqRunnable)(void);
             openURL:(NSURL *)url
             options:
                 (NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
+    _url = url;
+    NSLog(@"wechat_debug_log -> openURL options _url: %@", _url);
     return [WXApi handleOpenURL:url delegate:self];
 }
 
@@ -408,10 +425,13 @@ typedef void (^WechatKitWXReqRunnable)(void);
         [dictionary setValue:launchFromWXReq.lang forKey:@"lang"];
         [dictionary setValue:launchFromWXReq.country forKey:@"country"];
         if (_isRunning) {
+            NSLog(@"wechat_debug_log -> onLaunchFromWXReq: _isRunning");
             [_channel invokeMethod:@"onLaunchFromWXReq" arguments:dictionary];
         } else {
+            NSLog(@"wechat_debug_log -> onLaunchFromWXReq: !_isRunning");
             __weak typeof(self) weakSelf = self;
             _initialWXReqRunnable = ^() {
+                NSLog(@"wechat_debug_log -> onLaunchFromWXReq: !_isRunning Runnable");
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 [strongSelf->_channel invokeMethod:@"onLaunchFromWXReq" arguments:dictionary];
             };
@@ -423,10 +443,13 @@ typedef void (^WechatKitWXReqRunnable)(void);
         [dictionary setValue:showMessageFromWXReq.lang forKey:@"lang"];
         [dictionary setValue:showMessageFromWXReq.country forKey:@"country"];
         if (_isRunning) {
+            NSLog(@"wechat_debug_log -> onShowMessageFromWXReq: _isRunning");
             [_channel invokeMethod:@"onShowMessageFromWXReq" arguments:dictionary];
         } else {
+            NSLog(@"wechat_debug_log -> onShowMessageFromWXReq: !_isRunning");
             __weak typeof(self) weakSelf = self;
             _initialWXReqRunnable = ^() {
+                NSLog(@"wechat_debug_log -> onShowMessageFromWXReq: !_isRunning Runnable");
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 [strongSelf->_channel invokeMethod:@"onShowMessageFromWXReq" arguments:dictionary];
             };
